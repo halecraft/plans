@@ -80,6 +80,23 @@ Setup writes to the user's git config: a fetch refspec for the store, and
 `core.logAllRefUpdates always` so a ref move stays recoverable. An install should
 not do that behind someone's back, so it is an explicit command.
 
+### Host-specific help is printed, not performed
+
+GitHub can turn a `PLAN-` token into a clickable link, through a per-repository
+rule it calls an autolink. An earlier version of `init` created that rule for you
+by shelling out to the `gh` CLI.
+
+That was wrong three ways. It changed someone's repository settings from inside a
+setup command. It needed admin rights the tool cannot check for. And when the API
+refused, a wrapper could only report *that* it refused, not why — so a user on a
+host without the feature got the same shrug as one who merely lacked permission.
+It was also host-blind: it aimed at github.com no matter where the repo actually
+pushes, which on an unlucky name collision would have configured a stranger's
+repository.
+
+So `init` prints the exact command instead, and only when the remote really is
+GitHub. The package now has no external CLI dependency at all — git, bash, node.
+
 ## What is configurable
 
 Read from git config, so placement moves without editing anything: `plans.ref`,
@@ -116,7 +133,9 @@ and silently removes the merge guarantee.
 
 ## Open
 
-- `init --autolink` is GitHub-specific and has not been exercised against a live
-  host; it reports a skip rather than claiming success.
+- The browse link `init --docs` writes into `docs/plans.md` is still a github.com
+  URL whatever the remote's host, which is simply wrong anywhere else. `init` now
+  parses the host, so the fix is small — emit the link only for hosts whose URL
+  shape we know, or accept an explicit override.
 - The concurrent-merge tests need git 2.38 for `merge-tree --write-tree`. On
   older git they fail rather than skip, though `sync` itself explains why.
