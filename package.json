@@ -32,6 +32,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "plans": "node bin/plans.mjs",
     "test": "bash test/smoke.sh",
     "verify": "verify",
     "verify:fix": "verify --fix",

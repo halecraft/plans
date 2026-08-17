@@ -124,6 +124,7 @@ A **pushed** plan is permanent, exactly like a pushed commit. Deleting the ref r
 pnpm install
 pnpm verify       # format, shellcheck, CLI-surface and packaging checks, smoke test
 pnpm verify:fix   # apply formatting fixes
+pnpm plans …      # run the CLI on this repo itself, from the repo root
 ```
 
 `pnpm test` runs the smoke test alone. It exercises every command against a throwaway repo and a bare remote, and asserts the invariant the design rests on — that recording a plan leaves the working tree and the index untouched.
