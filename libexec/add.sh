@@ -109,8 +109,9 @@ else
 	commit=$(git commit-tree "$tree" -m "plans: $commit_verb $slug")
 fi
 
-# Passing the old value makes this a compare-and-swap; an empty old value asserts
-# the ref does not yet exist. Either way a concurrent writer cannot be clobbered.
+# Passing the old value makes git refuse the update if the ref moved since we read
+# it; an empty old value asserts it did not exist at all. Either way, a plan added
+# from another window in the meantime cannot be clobbered.
 git update-ref -m "plans add: $commit_verb $slug" "$STORE_REF" "$commit" "${parent:-}"
 
 echo "✅ $action $stored_path ($(git rev-parse --short "$STORE_REF"))"

@@ -3,14 +3,15 @@
 # Configuration and helpers shared by every subcommand.
 #
 # Where the store sits is read from git config, so an adopting repo can move it
-# without editing scripts. The slug format is deliberately NOT configurable: it
-# is the contract behind the PLAN- token, the GitHub autolink, and the
-# disjoint-path merge that lets two people add plans offline without conflict.
+# without editing scripts. The plan ID format is deliberately NOT configurable:
+# it gives every plan a path of its own, which is what lets two people add plans
+# at the same time and still merge without a conflict.
 #
 # shellcheck disable=SC2034  # every value here is read by the scripts that source it.
 set -euo pipefail
 
-# Fixed by contract: the directory inside the store tree, and the plan ID shape.
+# Not configurable: both are baked into the PLAN- reference that commit messages
+# carry, so changing either would strand every reference already written.
 STORE_DIR=plans
 SLUG_RE='^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+$'
 
@@ -25,8 +26,9 @@ STORE_REF=$(git config --get plans.ref || echo refs/plans/store)
 REMOTE=$(git config --get plans.remote || echo origin)
 MIRROR_BRANCH=$(git config --get plans.mirrorBranch || echo plans)
 
-# Mirrors how branches work: the local ref is authoritative, and the tracking
-# ref alongside it is the last-known state of the remote.
+# Mirrors how branches work: the local ref is authoritative, and this one records
+# the last-known state of the remote. It inserts the remote's name before the last
+# segment, so refs/plans/store becomes refs/plans/origin/store.
 TRACK_REF="${STORE_REF%/*}/$REMOTE/${STORE_REF##*/}"
 
 # git 2.38 introduced `merge-tree --write-tree`, which sync's divergence path uses.

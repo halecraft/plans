@@ -2,9 +2,9 @@
 #
 # Read the store: list, show, grep.
 #
-# These are thin wrappers over git, and that is the point — an AGENTS.md can
-# name one command instead of teaching plumbing, and the ref layout stays an
-# implementation detail.
+# Thin wrappers over git, and that is the point — a project's contributor notes can
+# name one command instead of spelling out ref paths, and where the store actually
+# lives stays an implementation detail we can change.
 set -euo pipefail
 # shellcheck source=libexec/common.sh
 . "$(dirname "$0")/common.sh"

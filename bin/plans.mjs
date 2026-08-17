@@ -2,8 +2,9 @@
 //
 // Dispatch a subcommand to its script in libexec/.
 //
-// The implementation is bash because the work is pure git plumbing; this shim
-// exists so the package installs as an ordinary npm bin on every platform.
+// The implementation is bash because the work is all low-level git commands —
+// hash-object, write-tree, update-ref. This shim exists so the package still
+// installs as an ordinary npm bin on every platform.
 
 import { spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"

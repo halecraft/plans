@@ -80,6 +80,13 @@ out=$(cd "$tmp/gh" && $PLANS init)
 assert_contains "offers the autolink command on GitHub" "$out" "gh api repos/acme/widgets/autolinks"
 assert_contains "aims the autolink at the mirror" "$out" "blob/plans/plans/<num>.md"
 
+# Remote URLs come in several shapes; owner/repo has to survive all of them.
+git init -q "$tmp/ssh"
+git -C "$tmp/ssh" remote add origin ssh://code.example.org:29418/acme/widgets.git
+(cd "$tmp/ssh" && $PLANS init --docs >/dev/null)
+assert_contains "parses a user-less ssh url with a port" \
+	"$(grep 'browsed on the web' "$tmp/ssh/docs/plans.md")" "acme/widgets/tree/plans"
+
 # --- add ---------------------------------------------------------------------
 
 echo "add"

@@ -16,7 +16,7 @@ So the plans are kept, in a git ref namespace of their own, and the commit that 
 
 Plans are stored in `refs/plans/store`: an orphan history with no relationship to the main branch, much like `gh-pages`. The files are genuinely in git and permanently recorded, but they are never checked out, so the working tree never accumulates design docs that go stale the day they ship.
 
-They can also be browsed on the web, at [github.com/{{REPO_NWO}}/tree/{{MIRROR_BRANCH}}](https://github.com/{{REPO_NWO}}/tree/{{MIRROR_BRANCH}}).
+They can also be browsed on the web, at [github.com/{{OWNER_REPO}}/tree/{{MIRROR_BRANCH}}](https://github.com/{{OWNER_REPO}}/tree/{{MIRROR_BRANCH}}).
 
 ## Reading plans
 

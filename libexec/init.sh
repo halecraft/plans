@@ -39,18 +39,14 @@ else
 	echo "✅ Set core.logAllRefUpdates = always"
 fi
 
-# owner/repo from the remote URL, for the docs link and the autolink command.
-repo_nwo() {
-	git remote get-url "$REMOTE" 2>/dev/null |
-		sed -E 's#^git@[^:]+:##; s#^ssh://git@[^/]+/##; s#^https?://[^/]+/##; s#\.git$##'
-}
-
-# The forge this repo pushes to, so host-specific advice is only offered where it
-# applies. Handles scp-style, ssh:// with a port, and https:// remotes alike.
-remote_host() {
-	git remote get-url "$REMOTE" 2>/dev/null |
-		sed -E 's#^[a-z+]+://##; s#^[^@/]*@##; s#[:/].*$##'
-}
+# The remote URL, read once and reduced to a host and an owner/repo. git accepts
+# three punctuations of the same thing — git@host:acme/widgets.git,
+# ssh://git@host:29418/acme/widgets.git and https://host/acme/widgets.git — so the
+# substitutions below strip scheme, user and port in turn, whichever are present.
+remote_bare=$(git remote get-url "$REMOTE" 2>/dev/null |
+	sed -E 's#^[a-z+]+://##; s#^[^@/]*@##; s#\.git/?$##')
+remote_host=${remote_bare%%[:/]*}
+remote_owner_repo=$(printf '%s' "$remote_bare" | sed -E 's#^[^:/]+(:[0-9]+)?[:/]##')
 
 if [ "$want_docs" = true ]; then
 	root=$(git rev-parse --show-toplevel)
@@ -58,9 +54,8 @@ if [ "$want_docs" = true ]; then
 	if [ -e "$target" ]; then
 		echo "⏭  docs/plans.md already exists — left untouched"
 	else
-		nwo=$(repo_nwo)
 		mkdir -p "$root/docs"
-		sed -e "s|{{REPO_NWO}}|${nwo:-your-org/your-repo}|g" \
+		sed -e "s|{{OWNER_REPO}}|${remote_owner_repo:-your-org/your-repo}|g" \
 			-e "s|{{MIRROR_BRANCH}}|$MIRROR_BRANCH|g" \
 			"$(dirname "$0")/../docs/plans.md" >"$target"
 		echo "✅ Wrote docs/plans.md"
@@ -70,15 +65,15 @@ fi
 echo
 echo "   Fetch the store with: plans sync"
 
-# Printed rather than run. It is a once-per-repo change to someone's repository
-# settings, it needs admin rights, and a wrapper could only report that the API
-# said no — not why. Offered only on GitHub, which is the forge that has the
-# feature; is_alphanumeric captures the whole hyphenated slug, not just the date.
-nwo=$(repo_nwo)
-if [ "$(remote_host)" = github.com ] && [ -n "$nwo" ] && [ -n "$MIRROR_BRANCH" ]; then
+# Printed rather than run: it changes repository settings, needs admin rights, and
+# happens once in a repo's life — and a wrapper could only report that the API said
+# no, not why. GitHub is the only host we know of with this feature. Its
+# is_alphanumeric option makes the match span hyphens, so a token captures the
+# whole plan ID rather than stopping at the end of the date.
+if [ "$remote_host" = github.com ] && [ -n "$remote_owner_repo" ] && [ -n "$MIRROR_BRANCH" ]; then
 	echo
 	echo "   To make PLAN- tokens clickable on GitHub, run once (needs admin):"
-	echo "     gh api repos/$nwo/autolinks -f key_prefix='PLAN-' \\"
-	echo "       -f url_template='https://github.com/$nwo/blob/$MIRROR_BRANCH/$STORE_DIR/<num>.md' \\"
+	echo "     gh api repos/$remote_owner_repo/autolinks -f key_prefix='PLAN-' \\"
+	echo "       -f url_template='https://github.com/$remote_owner_repo/blob/$MIRROR_BRANCH/$STORE_DIR/<num>.md' \\"
 	echo "       -F is_alphanumeric=true"
 fi
