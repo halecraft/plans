@@ -1,0 +1,46 @@
+{
+  "name": "@halecraft/plans",
+  "version": "0.1.0",
+  "description": "Permanent plan documents in a git ref namespace, outside the working tree",
+  "type": "module",
+  "bin": {
+    "plans": "./bin/plans.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "libexec",
+    "docs"
+  ],
+  "keywords": [
+    "git",
+    "plans",
+    "design-docs",
+    "refs"
+  ],
+  "author": "Duane Johnson <duane.johnson@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halecraft/plans"
+  },
+  "homepage": "https://github.com/halecraft/plans#readme",
+  "bugs": {
+    "url": "https://github.com/halecraft/plans/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "bash test/smoke.sh",
+    "verify": "verify",
+    "verify:fix": "verify --fix",
+    "release": "release"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@halecraft/release": "^0.1.0",
+    "@halecraft/verify": "^1.4.0",
+    "shellcheck": "^4.1.0"
+  }
+}
