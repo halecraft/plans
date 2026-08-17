@@ -63,9 +63,22 @@ $PLANS init >/dev/null
 assert_eq "adds the fetch refspec" \
 	"$(git config --get-all remote.origin.fetch | grep -c 'refs/plans')" "1"
 assert_eq "reflogs the namespace" "$(git config --get core.logAllRefUpdates)" "always"
-$PLANS init >/dev/null
+out=$($PLANS init)
 assert_eq "is idempotent" \
 	"$(git config --get-all remote.origin.fetch | grep -c 'refs/plans')" "1"
+
+# Host-specific advice is offered only where the feature exists.
+if printf '%s' "$out" | grep -q "clickable on GitHub"; then
+	no "stays quiet about GitHub on another host" "it offered the autolink anyway"
+else
+	ok "stays quiet about GitHub on another host"
+fi
+
+git init -q "$tmp/gh"
+git -C "$tmp/gh" remote add origin git@github.com:acme/widgets.git
+out=$(cd "$tmp/gh" && $PLANS init)
+assert_contains "offers the autolink command on GitHub" "$out" "gh api repos/acme/widgets/autolinks"
+assert_contains "aims the autolink at the mirror" "$out" "blob/plans/plans/<num>.md"
 
 # --- add ---------------------------------------------------------------------
 

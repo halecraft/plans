@@ -23,7 +23,9 @@ pnpm exec plans init
 
 `init` adds a fetch refspec for the store and turns on `core.logAllRefUpdates`, so a ref move you regret stays recoverable. It is a command rather than a postinstall hook on purpose — an install should not write to your git config behind your back.
 
-Add `--docs` to drop a `docs/plans.md` into the repo explaining the workflow to everyone else, and `--autolink` to register the `PLAN-` autolink on GitHub (needs `gh` and admin rights).
+Add `--docs` to drop a `docs/plans.md` into the repo explaining the workflow to everyone else.
+
+On a GitHub remote, `init` also prints the one-off `gh` command that makes `PLAN-` tokens clickable in commit messages and pull requests. It prints it rather than running it: that command changes your repository settings, needs admin rights, and happens once in a repo's life — so it is better read than wrapped.
 
 Drafts are ordinary files until you record them, so keep the directory you author in out of the repo:
 
@@ -35,7 +37,7 @@ echo .plans/ >> .gitignore
 
 |  |  |
 | --- | --- |
-| `plans init [--docs] [--autolink]` | configure this repo |
+| `plans init [--docs]` | configure this repo |
 | `plans add <file> [--as <slug>]` | record a plan; the slug is its permanent ID |
 | `plans sync [remote]` | fetch, reconcile, publish the store and its mirror |
 | `plans status [--fetch]` | what is stored, what is unpublished |

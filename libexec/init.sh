@@ -9,14 +9,12 @@ set -euo pipefail
 . "$(dirname "$0")/common.sh"
 
 want_docs=false
-want_autolink=false
 
 while [ $# -gt 0 ]; do
 	case $1 in
 	--docs) want_docs=true ;;
-	--autolink) want_autolink=true ;;
 	-h | --help)
-		echo "usage: plans init [--docs] [--autolink]" >&2
+		echo "usage: plans init [--docs]" >&2
 		exit 0
 		;;
 	*) die "Unknown option: $1" ;;
@@ -41,10 +39,17 @@ else
 	echo "✅ Set core.logAllRefUpdates = always"
 fi
 
-# owner/repo from the remote URL, for the docs link and the autolink template.
+# owner/repo from the remote URL, for the docs link and the autolink command.
 repo_nwo() {
 	git remote get-url "$REMOTE" 2>/dev/null |
 		sed -E 's#^git@[^:]+:##; s#^ssh://git@[^/]+/##; s#^https?://[^/]+/##; s#\.git$##'
+}
+
+# The forge this repo pushes to, so host-specific advice is only offered where it
+# applies. Handles scp-style, ssh:// with a port, and https:// remotes alike.
+remote_host() {
+	git remote get-url "$REMOTE" 2>/dev/null |
+		sed -E 's#^[a-z+]+://##; s#^[^@/]*@##; s#[:/].*$##'
 }
 
 if [ "$want_docs" = true ]; then
@@ -62,20 +67,18 @@ if [ "$want_docs" = true ]; then
 	fi
 fi
 
-if [ "$want_autolink" = true ]; then
-	nwo=$(repo_nwo)
-	[ -n "$nwo" ] || die "Could not read owner/repo from the $REMOTE remote URL."
-	command -v gh >/dev/null || die "--autolink needs the gh CLI."
-
-	# is_alphanumeric captures the whole hyphenated slug, not just the leading date.
-	if gh api "repos/$nwo/autolinks" -f key_prefix='PLAN-' \
-		-f url_template="https://github.com/$nwo/blob/$MIRROR_BRANCH/$STORE_DIR/<num>.md" \
-		-F is_alphanumeric=true >/dev/null 2>&1; then
-		echo "✅ Created the PLAN- autolink on $nwo"
-	else
-		echo "⏭  Could not create the PLAN- autolink (it may already exist, or you may not be an admin)"
-	fi
-fi
-
 echo
 echo "   Fetch the store with: plans sync"
+
+# Printed rather than run. It is a once-per-repo change to someone's repository
+# settings, it needs admin rights, and a wrapper could only report that the API
+# said no — not why. Offered only on GitHub, which is the forge that has the
+# feature; is_alphanumeric captures the whole hyphenated slug, not just the date.
+nwo=$(repo_nwo)
+if [ "$(remote_host)" = github.com ] && [ -n "$nwo" ] && [ -n "$MIRROR_BRANCH" ]; then
+	echo
+	echo "   To make PLAN- tokens clickable on GitHub, run once (needs admin):"
+	echo "     gh api repos/$nwo/autolinks -f key_prefix='PLAN-' \\"
+	echo "       -f url_template='https://github.com/$nwo/blob/$MIRROR_BRANCH/$STORE_DIR/<num>.md' \\"
+	echo "       -F is_alphanumeric=true"
+fi
